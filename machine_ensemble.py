@@ -21,7 +21,7 @@ def test_machines_accuracy(filters_num, machines_params):
                 correct_votes_num = sum(np.random.binomial(1, machine[0], tests_num // 2)) + \
                                     sum(np.random.binomial(1, machine[1], tests_num // 2))
                 acc = correct_votes_num / tests_num
-                if acc > 0.5 or acc == 1.:
+                if acc > 0.5 and acc != 1.:
                     break
             machines_accuracy[filter_index].append(acc)
     return machines_accuracy
@@ -49,7 +49,7 @@ def weighted_mv(votes_list, filters_num, items_num, machines_accuracy):
 
 
 def classify_items(ensembled_vote, lr, filters_num, items_num):
-    prob_pos_list = []
+    prob_in_list = []
     items_labels = []
     pos_thr = lr / (1. + lr)  # threshold to classify as a positive
     for item_index in range(items_num):
@@ -57,14 +57,14 @@ def classify_items(ensembled_vote, lr, filters_num, items_num):
         for filter_index in range(filters_num):
             prob_all_neg *= ensembled_vote[item_index*filters_num + filter_index]
         prob_item_pos = 1. - prob_all_neg
-        prob_pos_list.append(prob_item_pos)
+        prob_in_list.append(prob_item_pos)
 
         # classify item
         if prob_item_pos > pos_thr:
             items_labels.append(0)
         else:
             items_labels.append(1)
-    return items_labels, prob_pos_list
+    return items_labels, prob_in_list
 
 
 def machine_ensemble(filters_num, items_num, gt_values, lr):
@@ -88,7 +88,7 @@ def machine_ensemble(filters_num, items_num, gt_values, lr):
     machines_accuracy = test_machines_accuracy(filters_num, machines_params)
     # ensemble votes for each filter and item
     ensembled_votes = weighted_mv(votes_list, filters_num, items_num, machines_accuracy)
-    items_labels, prob_pos_list = classify_items(ensembled_votes, lr, filters_num, items_num)
+    items_labels, prob_in_list = classify_items(ensembled_votes, lr, filters_num, items_num)
     loss, fp_rate, fn_rate, recall, precision, f_beta = compute_metrics(items_labels, gt_values, lr, filters_num)
     return loss, fp_rate, fn_rate, recall, precision, f_beta
 
