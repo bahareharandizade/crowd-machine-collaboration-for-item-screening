@@ -2,7 +2,7 @@ import numpy as np
 from scipy.special import binom
 
 
-def assign_criteria(papers_ids, criteria_num, values_count, power_cr_list, acc_cr_list):
+def assign_criteria(papers_ids, criteria_num, values_count, power_cr_list, acc_cr_list, prior_prob_in=None):
     cr_assigned = []
     papers_ids_new = []
     cr_list = range(criteria_num)
@@ -13,11 +13,13 @@ def assign_criteria(papers_ids, criteria_num, values_count, power_cr_list, acc_c
         joint_prob_votes_out = [1., 1., 1., 1.]
         for cr in cr_list:
             acc_cr = acc_cr_list[cr]
-            power_cr = power_cr_list[cr]
+            if prior_prob_in != None:
+                p_paper_out = 1 - prior_prob_in[p_id * criteria_num + cr]
+            else:
+                p_paper_out = power_cr_list[cr]
             cr_count = values_count[p_id * criteria_num + cr]
             in_c = cr_count[0]
             out_c = cr_count[1]
-            p_paper_out = power_cr
             for n in range(1, 11):
                 # new value is out
                 p_vote_out = acc_cr * p_paper_out + (1 - acc_cr) * (1 - p_paper_out)
@@ -68,7 +70,7 @@ def classify_papers_baseline(papers_ids, criteria_num, values_prob, lr):
     return dict(zip(classified_papers_ids, classified_papers)), rest_papers_ids
 
 
-def classify_papers(papers_ids, criteria_num, values_count, p_thrs, acc_cr_list, power_cr_list):
+def classify_papers(papers_ids, criteria_num, values_count, p_thrs, acc_cr_list, power_cr_list, prior_prob_in=None):
     classified_papers = []
     classified_papers_ids = []
     rest_papers_ids = []
@@ -77,15 +79,20 @@ def classify_papers(papers_ids, criteria_num, values_count, p_thrs, acc_cr_list,
         p_inclusion = 1.
         for cr in range(criteria_num):
             acc_cr = acc_cr_list[cr]
-            power_cr = power_cr_list[cr]
+            # power_cr = power_cr_list[cr]
             cr_count = values_count[p_id * criteria_num + cr]
             in_c = cr_count[0]
             out_c = cr_count[1]
-            if in_c == 0 and out_c == 0:
-                prob_cr_in = 1 - power_cr
+            if prior_prob_in != None:
+                p_paper_out = 1 - prior_prob_in[p_id * criteria_num + cr]
             else:
-                prop_p_in = binom(in_c+out_c, in_c)*acc_cr**in_c*(1-acc_cr)**out_c*(1-power_cr)
-                prop_p_out = binom(in_c+out_c, out_c)*acc_cr**out_c*(1-acc_cr)**in_c*power_cr
+                p_paper_out = power_cr_list[cr]
+
+            if in_c == 0 and out_c == 0:
+                prob_cr_in = 1 - p_paper_out
+            else:
+                prop_p_in = binom(in_c+out_c, in_c)*acc_cr**in_c*(1-acc_cr)**out_c*(1-p_paper_out)
+                prop_p_out = binom(in_c+out_c, out_c)*acc_cr**out_c*(1-acc_cr)**in_c*p_paper_out
                 prob_cr_in = prop_p_in / (prop_p_in + prop_p_out)
             p_inclusion *= prob_cr_in
         p_exclusion = 1 - p_inclusion

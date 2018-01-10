@@ -12,7 +12,7 @@ def generate_vote(gt, machine):
 
 def test_machines_accuracy(filters_num, machines_params):
     # test machines
-    tests_num = 20  # 20 test items
+    tests_num = 50  # 50 test items
     machines_accuracy = [[] for _ in range(filters_num)]
     for filter_index in range(filters_num):
         for machine in machines_params[filter_index]:
@@ -48,14 +48,14 @@ def weighted_mv(votes_list, filters_num, items_num, machines_accuracy):
     return probs_list
 
 
-def classify_items(ensembled_vote, lr, filters_num, items_num):
+def classify_items(ensembled_votes, lr, filters_num, items_num):
     prob_in_list = []
     items_labels = []
     pos_thr = lr / (1. + lr)  # threshold to classify as a positive
     for item_index in range(items_num):
         prob_all_neg = 1.
         for filter_index in range(filters_num):
-            prob_all_neg *= ensembled_vote[item_index*filters_num + filter_index]
+            prob_all_neg *= ensembled_votes[item_index*filters_num + filter_index]
         prob_item_pos = 1. - prob_all_neg
         prob_in_list.append(prob_item_pos)
 
@@ -87,8 +87,8 @@ def machine_ensemble(filters_num, items_num, gt_values, lr):
     # estimate machines accuracies
     machines_accuracy = test_machines_accuracy(filters_num, machines_params)
     # ensemble votes for each filter and item
-    ensembled_votes = weighted_mv(votes_list, filters_num, items_num, machines_accuracy)
-    items_labels, prob_in_list = classify_items(ensembled_votes, lr, filters_num, items_num)
+    ensembled_votes_in = weighted_mv(votes_list, filters_num, items_num, machines_accuracy)
+    items_labels, prob_in_list = classify_items(ensembled_votes_in, lr, filters_num, items_num)
     loss, fp_rate, fn_rate, recall, precision, f_beta = compute_metrics(items_labels, gt_values, lr, filters_num)
-    return loss, fp_rate, fn_rate, recall, precision, f_beta
+    return loss, fp_rate, fn_rate, recall, precision, f_beta, ensembled_votes_in
 
