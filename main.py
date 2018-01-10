@@ -10,7 +10,7 @@ from hybrid_classifier import hybrid_classifier
 
 if __name__ == '__main__':
     z = 0.3
-    lr = 100
+    lr = 10
     n_papers = 1000
     papers_page = 10
     criteria_power = [0.14, 0.14, 0.28, 0.42]
@@ -19,7 +19,7 @@ if __name__ == '__main__':
     fr_p_part = 0.03
     data = []
     for Nt in [4]:
-        for J in [3, 5, 10]:
+        for J in [3, 5]:
             print('Nt: {}. J: {}'.format(Nt, J))
             loss_me_list = []
             fp_me, tp_me, rec_me, pre_me, f_me, f_me = [], [], [], [], [], []

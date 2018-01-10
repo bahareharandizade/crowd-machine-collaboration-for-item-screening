@@ -39,7 +39,7 @@ def estimate_loss(papers_prob_in, cost):
 
 
 def compute_metrics(classified_papers, GT, lr, criteria_num):
-    lr = 5
+    # lr = 5
     # obtain GT scope values for papers
     GT_scope = []
     for paper_id in range(len(classified_papers)):

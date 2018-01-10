@@ -76,6 +76,11 @@ def machine_ensemble(filters_num, items_num, gt_values, lr):
                        [(0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8)],  # machines for criteria 2
                        [(0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8)]]  # machines for criteria 3
 
+    # machines_params = [[(0.7, 0.7), (0.7, 0.7), (0.7, 0.7), (0.7, 0.7), (0.7, 0.7)],  # machines for criteria 0
+    #                    [(0.7, 0.7), (0.7, 0.7), (0.7, 0.7), (0.7, 0.7), (0.7, 0.7)],  # machines for criteria 1
+    #                    [(0.7, 0.7), (0.7, 0.7), (0.7, 0.7), (0.7, 0.7), (0.7, 0.7)],  # machines for criteria 2
+    #                    [(0.7, 0.7), (0.7, 0.7), (0.7, 0.7), (0.7, 0.7), (0.7, 0.7)]]  # machines for criteria 3
+
     votes_list = [[] for _ in range(items_num*filters_num)]
     for item_index in range(items_num):
         for filter_index in range(filters_num):

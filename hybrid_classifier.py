@@ -61,6 +61,9 @@ def hybrid_classifier(criteria_num, n_papers, papers_worker, J, lr, Nt, acc,
     first_round_res = do_first_round(fr_n_papers, criteria_num, papers_worker, J, lr, GT,
                                      criteria_power, acc, criteria_difficulty, values_count)
     classified_papers_fr, rest_p_ids, power_cr_list, acc_cr_list = first_round_res
+    for cr_id, cr_acc in enumerate(acc_cr_list):
+        if cr_acc > 0.98:
+            acc_cr_list[cr_id] = 0.95
     classified_papers = dict(zip(range(n_papers), [1]*n_papers))
     classified_papers.update(classified_papers_fr)
     rest_p_ids = rest_p_ids + list(range(fr_n_papers, n_papers))
