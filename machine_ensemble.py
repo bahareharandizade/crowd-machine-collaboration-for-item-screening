@@ -71,8 +71,7 @@ def classify_items(ensembled_votes, lr, filters_num, items_num):
     return items_labels, prob_in_list
 
 
-def get_machines(corr):
-    Nm = 20
+def get_machines(corr, Nm):
     machines_num = 10
     test_votes = [[] for _ in range(machines_num)]
     test_votes[0] = list(np.random.binomial(1, 0.65, Nm))
@@ -89,13 +88,14 @@ def get_machines(corr):
     selected_machines_acc = []
     for machine_votes, acc in zip(test_votes, machines_acc):
         correct_votes_num = sum(machine_votes)
-        conf = beta.sf(0.5, correct_votes_num+1, 20-correct_votes_num+1)
+        conf = beta.sf(0.5, correct_votes_num+1, Nm-correct_votes_num+1)
         if conf > 0.95:
             selected_machines_acc.append(acc)
+    print(len(selected_machines_acc))
     return selected_machines_acc
 
 
-def machine_ensemble(filters_num, items_num, gt_values, lr, corr):
+def machine_ensemble(filters_num, items_num, gt_values, lr, corr, Nm):
     # parameters for machine-based classifiers (accuracy for positives, accuracy for negatives)
     # positive vote - out of scope
     # negative vote - in scope
@@ -109,7 +109,7 @@ def machine_ensemble(filters_num, items_num, gt_values, lr, corr):
     #                    [(m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc)],  # machines for criteria 2
     #                    [(m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc)]]  # machines for criteria 3
     # corr = .2
-    machines_accuracy = get_machines(corr)
+    machines_accuracy = get_machines(corr, Nm)
 
     votes_list = [[] for _ in range(items_num*filters_num)]
 

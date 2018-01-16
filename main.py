@@ -19,9 +19,9 @@ if __name__ == '__main__':
     fr_p_part = 0.02
     data = []
     Nt = 5
-    Nm = 20
+    Nm = 50
     J = 3
-    print(20, 1000)
+    print(Nm, 1000)
     for corr in [0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
         print('Corr: {}, lr: {}'.format(corr, lr))
         loss_me_list = []
@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
             # machine ensemble
             loss_me, fp_rate_me, tp_rate_me, \
-            rec_me_, pre_me_, f_beta_me, prior_prob_in = machine_ensemble(criteria_num, n_papers, GT, lr, corr)
+            rec_me_, pre_me_, f_beta_me, prior_prob_in = machine_ensemble(criteria_num, n_papers, GT, lr, corr, Nm)
             loss_me_list.append(loss_me)
             fp_me.append(fp_rate_me)
             tp_me.append(tp_rate_me)
@@ -102,4 +102,4 @@ if __name__ == '__main__':
     pd.DataFrame(data, columns=['Nt', 'J', 'lr', 'loss_mean', 'loss_std', 'FPR', 'TPR',
                                 'price_mean', 'price_std', 'alg', 'recall', 'precision',
                                 'f_beta', 'Nm', 'corr']). \
-                                to_csv('output/data/fig0_acc05_095_1000items_conf95.csv', index=False)
+                                to_csv('output/data/fig5_acc05_095_1000items_conf99.csv', index=False)
