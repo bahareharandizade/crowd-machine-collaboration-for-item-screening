@@ -1,18 +1,22 @@
 import numpy as np
 from helpers.utils import compute_metrics
+from scipy.stats import beta
 
 
-def generate_vote(gt, machine):
-    acc = machine[gt]  # take either acc_positive of acc_negative
-    if np.random.binomial(1, acc):
-        return gt
+def generate_vote(gt, acc, corr, vote_prev):
+    if np.random.binomial(1, corr, 1)[0]:
+        vote = vote_prev
     else:
-        return 1 - gt
+        if np.random.binomial(1, acc):
+            vote = gt
+        else:
+            vote = 1 - gt
+    return vote
 
 
 def test_machines_accuracy(filters_num, machines_params):
     # test machines
-    tests_num = 50  # 50 test items
+    tests_num = 20  # 20 test items
     machines_accuracy = [[] for _ in range(filters_num)]
     for filter_index in range(filters_num):
         for machine in machines_params[filter_index]:
@@ -32,7 +36,7 @@ def test_machines_accuracy(filters_num, machines_params):
 def weighted_mv(votes_list, filters_num, items_num, machines_accuracy):
     probs_list = [None]*filters_num*items_num
     for filter_index in range(filters_num):
-        filter_machines_acc = machines_accuracy[filter_index]
+        filter_machines_acc = machines_accuracy
         for item_index in range(items_num):
             like_true_val = 1  # assume true value is positive
             a, b = 1., 1.  # constituents of baysian formula, prior is uniform dist.
@@ -67,30 +71,67 @@ def classify_items(ensembled_votes, lr, filters_num, items_num):
     return items_labels, prob_in_list
 
 
-def machine_ensemble(filters_num, items_num, gt_values, lr):
+def get_machines(corr):
+    Nm = 20
+    machines_num = 10
+    test_votes = [[] for _ in range(machines_num)]
+    test_votes[0] = list(np.random.binomial(1, 0.65, Nm))
+
+    machines_acc = [0.65] + list(np.random.uniform(0.5, 0.95, machines_num - 1))
+    for m_id, acc in enumerate(machines_acc[1:]):
+        for i in range(Nm):
+            if np.random.binomial(1, corr, 1)[0]:
+                vote = test_votes[0][i]
+            else:
+                vote = np.random.binomial(1, acc, 1)[0]
+            test_votes[m_id+1].append(vote)
+
+    selected_machines_acc = []
+    for machine_votes, acc in zip(test_votes, machines_acc):
+        correct_votes_num = sum(machine_votes)
+        conf = beta.sf(0.5, correct_votes_num+1, 20-correct_votes_num+1)
+        if conf > 0.95:
+            selected_machines_acc.append(acc)
+    return selected_machines_acc
+
+
+def machine_ensemble(filters_num, items_num, gt_values, lr, corr):
     # parameters for machine-based classifiers (accuracy for positives, accuracy for negatives)
     # positive vote - out of scope
     # negative vote - in scope
-    machines_params = [[(0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8)],  # machines for criteria 0
-                       [(0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8)],  # machines for criteria 1
-                       [(0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8)],  # machines for criteria 2
-                       [(0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8)]]  # machines for criteria 3
+    # machines_params = [[(0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8)],  # machines for criteria 0
+    #                    [(0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8)],  # machines for criteria 1
+    #                    [(0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8)],  # machines for criteria 2
+    #                    [(0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8)]]  # machines for criteria 3
 
-    # machines_params = [[(0.7, 0.7), (0.7, 0.7), (0.7, 0.7), (0.7, 0.7), (0.7, 0.7)],  # machines for criteria 0
-    #                    [(0.7, 0.7), (0.7, 0.7), (0.7, 0.7), (0.7, 0.7), (0.7, 0.7)],  # machines for criteria 1
-    #                    [(0.7, 0.7), (0.7, 0.7), (0.7, 0.7), (0.7, 0.7), (0.7, 0.7)],  # machines for criteria 2
-    #                    [(0.7, 0.7), (0.7, 0.7), (0.7, 0.7), (0.7, 0.7), (0.7, 0.7)]]  # machines for criteria 3
+    # machines_params = [[(m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc)],  # machines for criteria 0
+    #                    [(m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc)],  # machines for criteria 1
+    #                    [(m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc)],  # machines for criteria 2
+    #                    [(m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc)]]  # machines for criteria 3
+    # corr = .2
+    machines_accuracy = get_machines(corr)
 
     votes_list = [[] for _ in range(items_num*filters_num)]
+
     for item_index in range(items_num):
         for filter_index in range(filters_num):
             gt = gt_values[item_index*filters_num + filter_index]  # can be either 0 or 1
-            for machine in machines_params[filter_index]:
-                vote = generate_vote(gt, machine)
+            if np.random.binomial(1, 0.65):
+                vote = gt
+            else:
+                vote = 1 - gt
+            votes_list[item_index * filters_num + filter_index].append(vote)
+
+    for item_index in range(items_num):
+        for filter_index in range(filters_num):
+            gt = gt_values[item_index*filters_num + filter_index]  # can be either 0 or 1
+            vote_prev = votes_list[item_index*filters_num + filter_index][0]
+            for machine in machines_accuracy[1:]:
+                vote = generate_vote(gt, machine, corr, vote_prev)
                 votes_list[item_index*filters_num + filter_index].append(vote)
 
-    # estimate machines accuracies
-    machines_accuracy = test_machines_accuracy(filters_num, machines_params)
+    # # estimate machines accuracies
+    # machines_accuracy = test_machines_accuracy(filters_num, machines_params)
     # ensemble votes for each filter and item
     ensembled_votes_in = weighted_mv(votes_list, filters_num, items_num, machines_accuracy)
     items_labels, prob_in_list = classify_items(ensembled_votes_in, lr, filters_num, items_num)

@@ -10,92 +10,96 @@ from hybrid_classifier import hybrid_classifier
 
 if __name__ == '__main__':
     z = 0.3
-    lr = 10
+    lr = 5
     n_papers = 1000
     papers_page = 10
     criteria_power = [0.14, 0.14, 0.28, 0.42]
     criteria_difficulty = [1., 1., 1.1, 0.9]
     criteria_num = len(criteria_power)
-    fr_p_part = 0.03
+    fr_p_part = 0.02
     data = []
-    for Nt in [4]:
-        for J in [3, 5]:
-            print('Nt: {}. J: {}'.format(Nt, J))
-            loss_me_list = []
-            fp_me, tp_me, rec_me, pre_me, f_me, f_me = [], [], [], [], [], []
+    Nt = 5
+    Nm = 20
+    J = 3
+    print(20, 1000)
+    for corr in [0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
+        print('Corr: {}, lr: {}'.format(corr, lr))
+        loss_me_list = []
+        fp_me, tp_me, rec_me, pre_me, f_me, f_me = [], [], [], [], [], []
 
-            loss_smrun_list = []
-            cost_smrun_list = []
-            fp_sm, tp_sm, rec_sm, pre_sm, f_sm, f_sm = [], [], [], [], [], []
+        loss_smrun_list = []
+        cost_smrun_list = []
+        fp_sm, tp_sm, rec_sm, pre_sm, f_sm, f_sm = [], [], [], [], [], []
 
-            loss_h_list = []
-            cost_h_list = []
-            fp_h, tp_h, rec_h, pre_h, f_h, f_h = [], [], [], [], [], []
-            for _ in range(10):
-                # quiz, generation responses
-                acc = run_quiz_criteria_confm(Nt, z, [1.])
-                responses, GT = generate_responses_gt(n_papers, criteria_power, papers_page,
-                                                      J, acc, criteria_difficulty)
+        loss_h_list = []
+        cost_h_list = []
+        fp_h, tp_h, rec_h, pre_h, f_h, f_h = [], [], [], [], [], []
+        for _ in range(10):
+            # quiz, generation responses
+            acc = run_quiz_criteria_confm(Nt, z, [1.])
+            responses, GT = generate_responses_gt(n_papers, criteria_power, papers_page,
+                                                  J, acc, criteria_difficulty)
 
-                # machine ensemble
-                loss_me, fp_rate_me, tp_rate_me, \
-                rec_me_, pre_me_, f_beta_me, prior_prob_in = machine_ensemble(criteria_num, n_papers, GT, lr)
-                loss_me_list.append(loss_me)
-                fp_me.append(fp_rate_me)
-                tp_me.append(tp_rate_me)
-                rec_me.append(rec_me_)
-                pre_me.append(pre_me_)
-                f_me.append(f_beta_me)
+            # machine ensemble
+            loss_me, fp_rate_me, tp_rate_me, \
+            rec_me_, pre_me_, f_beta_me, prior_prob_in = machine_ensemble(criteria_num, n_papers, GT, lr, corr)
+            loss_me_list.append(loss_me)
+            fp_me.append(fp_rate_me)
+            tp_me.append(tp_rate_me)
+            rec_me.append(rec_me_)
+            pre_me.append(pre_me_)
+            f_me.append(f_beta_me)
 
-                # hybrid classifier
-                loss_h, cost_h, fp_rate_h, tp_rate_h, \
-                rec_h_, pre_h_, f_beta_h = hybrid_classifier(criteria_num, n_papers, papers_page, J, lr, Nt, acc,
-                                                     criteria_power, criteria_difficulty, GT, fr_p_part, prior_prob_in)
-                loss_h_list.append(loss_h)
-                cost_h_list.append(cost_h)
-                fp_h.append(fp_rate_h)
-                tp_h.append(tp_rate_h)
-                rec_h.append(rec_h_)
-                pre_h.append(pre_h_)
-                f_h.append(f_beta_h)
+            # hybrid classifier
+            loss_h, cost_h, fp_rate_h, tp_rate_h, \
+            rec_h_, pre_h_, f_beta_h = hybrid_classifier(criteria_num, n_papers, papers_page, J, lr, Nt, acc,
+                                                 criteria_power, criteria_difficulty, GT, fr_p_part, prior_prob_in)
+            loss_h_list.append(loss_h)
+            cost_h_list.append(cost_h)
+            fp_h.append(fp_rate_h)
+            tp_h.append(tp_rate_h)
+            rec_h.append(rec_h_)
+            pre_h.append(pre_h_)
+            f_h.append(f_beta_h)
 
-                # sm-run
-                loss_smrun, cost_smrun, fp_rate_sm, tp_rate_sm, \
-                rec_sm_, pre_sm_, f_beta_sm = sm_run(criteria_num, n_papers, papers_page, J, lr, Nt, acc,
-                                                     criteria_power, criteria_difficulty, GT, fr_p_part)
-                loss_smrun_list.append(loss_smrun)
-                cost_smrun_list.append(cost_smrun)
-                fp_sm.append(fp_rate_sm)
-                tp_sm.append(tp_rate_sm)
-                rec_sm.append(rec_sm_)
-                pre_sm.append(pre_sm_)
-                f_sm.append(f_beta_sm)
+            # sm-run
+            loss_smrun, cost_smrun, fp_rate_sm, tp_rate_sm, \
+            rec_sm_, pre_sm_, f_beta_sm = sm_run(criteria_num, n_papers, papers_page, J, lr, Nt, acc,
+                                                 criteria_power, criteria_difficulty, GT, fr_p_part)
+            loss_smrun_list.append(loss_smrun)
+            cost_smrun_list.append(cost_smrun)
+            fp_sm.append(fp_rate_sm)
+            tp_sm.append(tp_rate_sm)
+            rec_sm.append(rec_sm_)
+            pre_sm.append(pre_sm_)
+            f_sm.append(f_beta_sm)
 
-            print('SM-RUN    loss: {:1.2f}, price: {:1.2f}, fp_rate: {:1.2f}, tp_rate: {:1.2f}, ' \
-                  'recall: {:1.2f}, precision: {:1.2f}, f_b: {}'.\
-                format(np.mean(loss_smrun_list), np.mean(cost_smrun_list), np.mean(fp_sm), np.mean(tp_sm),
-                       np.mean(rec_sm), np.mean(pre_sm), np.mean(f_sm)))
+        print('ME-RUN    loss: {:1.2f}, fp_rate: {:1.2f}, tp_rate: {:1.2f}, ' \
+              'recall: {:1.2f}, precision: {:1.2f}, f_b: {}'. \
+              format(np.mean(loss_me_list), np.mean(fp_me), np.mean(tp_me),
+                     np.mean(rec_me), np.mean(pre_me), np.mean(f_me)))
 
-            print('ME-RUN    loss: {:1.2f}, fp_rate: {:1.2f}, tp_rate: {:1.2f}, ' \
-                  'recall: {:1.2f}, precision: {:1.2f}, f_b: {}'. \
-                  format(np.mean(loss_me_list), np.mean(fp_me), np.mean(tp_me),
-                         np.mean(rec_me), np.mean(pre_me), np.mean(f_me)))
+        print('SM-RUN    loss: {:1.2f}, price: {:1.2f}, fp_rate: {:1.2f}, tp_rate: {:1.2f}, ' \
+              'recall: {:1.2f}, precision: {:1.2f}, f_b: {}'.\
+            format(np.mean(loss_smrun_list), np.mean(cost_smrun_list), np.mean(fp_sm), np.mean(tp_sm),
+                   np.mean(rec_sm), np.mean(pre_sm), np.mean(f_sm)))
 
-            print('H-RUN    loss: {:1.2f}, price: {:1.2f}, fp_rate: {:1.2f}, tp_rate: {:1.2f}, ' \
-                  'recall: {:1.2f}, precision: {:1.2f}, f_b: {}'. \
-                  format(np.mean(loss_h_list), np.mean(cost_h_list), np.mean(fp_h), np.mean(tp_h),
-                         np.mean(rec_h), np.mean(pre_h), np.mean(f_h)))
-            print('---------------------')
+        print('H-RUN    loss: {:1.2f}, price: {:1.2f}, fp_rate: {:1.2f}, tp_rate: {:1.2f}, ' \
+              'recall: {:1.2f}, precision: {:1.2f}, f_b: {}'. \
+              format(np.mean(loss_h_list), np.mean(cost_h_list), np.mean(fp_h), np.mean(tp_h),
+                     np.mean(rec_h), np.mean(pre_h), np.mean(f_h)))
+        print('---------------------')
 
-            # data.append([Nt, J, lr, np.mean(loss_baseline_list), np.std(loss_baseline_list),
-            #              np.mean(fp_b), np.mean(tp_b), cost_baseline, 0., 'Baseline',
-            #              np.mean(rec_b), np.mean(pre_b), np.mean(f_b)])
-            # data.append([Nt, J, lr, np.mean(loss_mrun_list), np.std(loss_mrun_list), np.mean(fp_m),
-            #              np.mean(tp_m), np.mean(cost_mrun_list), np.std(cost_mrun_list), 'M-runs',
-            #              np.mean(rec_m), np.mean(pre_m), np.mean(f_m)])
-            data.append([Nt, J, lr, np.mean(loss_smrun_list), np.std(loss_smrun_list), np.mean(fp_sm),
-                         np.mean(tp_sm), np.mean(cost_smrun_list), np.std(cost_smrun_list), 'SM-runs',
-                         np.mean(rec_sm), np.mean(pre_sm), np.mean(f_sm)])
-    # pd.DataFrame(data, columns=['Nt', 'J', 'lr', 'loss_mean', 'loss_std', 'FPR', 'TPR',
-    #                             'price_mean', 'price_std', 'alg', 'recall', 'precision', 'f_beta']). \
-    #                             to_csv('output/data/cr5_ec20_a_norm.csv', index=False)
+        data.append([Nt, J, lr, np.mean(loss_me_list), np.std(loss_me_list),
+                     np.mean(fp_me), np.mean(tp_me), 0., 0., 'Machines-Ensemble',
+                     np.mean(rec_me), np.mean(pre_me), np.mean(f_me), Nm, corr])
+        data.append([Nt, J, lr, np.mean(loss_h_list), np.std(loss_h_list), np.mean(fp_h),
+                     np.mean(tp_h), np.mean(cost_h_list), np.std(cost_h_list), 'Hybrid-Ensemble',
+                     np.mean(rec_h), np.mean(pre_h), np.mean(f_h), Nm, corr])
+        data.append([Nt, J, lr, np.mean(loss_smrun_list), np.std(loss_smrun_list), np.mean(fp_sm),
+                     np.mean(tp_sm), np.mean(cost_smrun_list), np.std(cost_smrun_list), 'Crowd-Ensemble',
+                     np.mean(rec_sm), np.mean(pre_sm), np.mean(f_sm), Nm, corr])
+    pd.DataFrame(data, columns=['Nt', 'J', 'lr', 'loss_mean', 'loss_std', 'FPR', 'TPR',
+                                'price_mean', 'price_std', 'alg', 'recall', 'precision',
+                                'f_beta', 'Nm', 'corr']). \
+                                to_csv('output/data/fig0_acc05_095_1000items_conf95.csv', index=False)
