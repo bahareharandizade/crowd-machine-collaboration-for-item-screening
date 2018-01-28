@@ -14,9 +14,8 @@ def generate_vote(gt, acc, corr, vote_prev):
     return vote
 
 
-def test_machines_accuracy(filters_num, machines_params):
+def test_machines_accuracy(filters_num, machines_params, tests_num):
     # test machines
-    tests_num = 20  # 20 test items
     machines_accuracy = [[] for _ in range(filters_num)]
     for filter_index in range(filters_num):
         for machine in machines_params[filter_index]:
@@ -71,16 +70,16 @@ def classify_items(ensembled_votes, lr, filters_num, items_num):
     return items_labels, prob_in_list
 
 
-def get_machines(corr, Nm):
+def get_machines(corr, test_num):
     machines_num = 10
-    test_votes = [[] for _ in range(machines_num)]
-    test_votes[0] = list(np.random.binomial(1, 0.65, Nm))
     first_machine_acc = np.random.uniform(0.55, 0.9)
-    print("first_machine_acc: {}".format(first_machine_acc))
+    # print("first_machine_acc: {}".format(first_machine_acc))
+    test_votes = [[] for _ in range(machines_num)]
+    test_votes[0] = list(np.random.binomial(1, first_machine_acc, test_num))
 
     machines_acc = [first_machine_acc] + list(np.random.uniform(0.5, 0.95, machines_num - 1))
     for m_id, acc in enumerate(machines_acc[1:]):
-        for i in range(Nm):
+        for i in range(test_num):
             if np.random.binomial(1, corr, 1)[0]:
                 vote = test_votes[0][i]
             else:
@@ -90,14 +89,18 @@ def get_machines(corr, Nm):
     selected_machines_acc = []
     for machine_votes, acc in zip(test_votes, machines_acc):
         correct_votes_num = sum(machine_votes)
-        conf = beta.sf(0.5, correct_votes_num+1, Nm-correct_votes_num+1)
+        conf = beta.sf(0.5, correct_votes_num+1, test_num-correct_votes_num+1)
         if conf > 0.95:
             selected_machines_acc.append(acc)
-    print(len(selected_machines_acc))
+
+    # check number of machines passed the tests
+    if len(selected_machines_acc) < 2:
+        print("!!! machines passed: ", len(selected_machines_acc))
+
     return selected_machines_acc
 
 
-def machine_ensemble(filters_num, items_num, gt_values, lr, corr, Nm):
+def machine_ensemble(filters_num, items_num, gt_values, lr, corr, test_num):
     # parameters for machine-based classifiers (accuracy for positives, accuracy for negatives)
     # positive vote - out of scope
     # negative vote - in scope
@@ -111,7 +114,7 @@ def machine_ensemble(filters_num, items_num, gt_values, lr, corr, Nm):
     #                    [(m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc)],  # machines for criteria 2
     #                    [(m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc)]]  # machines for criteria 3
     # corr = .2
-    machines_accuracy = get_machines(corr, Nm)
+    machines_accuracy = get_machines(corr, test_num)
 
     votes_list = [[] for _ in range(items_num*filters_num)]
 
