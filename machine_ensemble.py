@@ -75,8 +75,10 @@ def get_machines(corr, Nm):
     machines_num = 10
     test_votes = [[] for _ in range(machines_num)]
     test_votes[0] = list(np.random.binomial(1, 0.65, Nm))
+    first_machine_acc = np.random.uniform(0.55, 0.9)
+    print("first_machine_acc: {}".format(first_machine_acc))
 
-    machines_acc = [0.65] + list(np.random.uniform(0.5, 0.95, machines_num - 1))
+    machines_acc = [first_machine_acc] + list(np.random.uniform(0.5, 0.95, machines_num - 1))
     for m_id, acc in enumerate(machines_acc[1:]):
         for i in range(Nm):
             if np.random.binomial(1, corr, 1)[0]:

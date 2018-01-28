@@ -21,7 +21,7 @@ if __name__ == '__main__':
     Nt = 5
     Nm = 50
     J = 3
-    print(Nm, 1000)
+    print(Nm, n_papers)
     for corr in [0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
         print('Corr: {}, lr: {}'.format(corr, lr))
         loss_me_list = []
@@ -34,7 +34,7 @@ if __name__ == '__main__':
         loss_h_list = []
         cost_h_list = []
         fp_h, tp_h, rec_h, pre_h, f_h, f_h = [], [], [], [], [], []
-        for _ in range(10):
+        for _ in range(5):
             # quiz, generation responses
             acc = run_quiz_criteria_confm(Nt, z, [1.])
             responses, GT = generate_responses_gt(n_papers, criteria_power, papers_page,
@@ -53,7 +53,8 @@ if __name__ == '__main__':
             # hybrid classifier
             loss_h, cost_h, fp_rate_h, tp_rate_h, \
             rec_h_, pre_h_, f_beta_h = hybrid_classifier(criteria_num, n_papers, papers_page, J, lr, Nt, acc,
-                                                 criteria_power, criteria_difficulty, GT, fr_p_part, prior_prob_in)
+                                                         criteria_power, criteria_difficulty, GT, fr_p_part,
+                                                         prior_prob_in)
             loss_h_list.append(loss_h)
             cost_h_list.append(cost_h)
             fp_h.append(fp_rate_h)
@@ -74,19 +75,19 @@ if __name__ == '__main__':
             pre_sm.append(pre_sm_)
             f_sm.append(f_beta_sm)
 
-        print('ME-RUN    loss: {:1.2f}, fp_rate: {:1.2f}, tp_rate: {:1.2f}, ' \
+        print('ME-RUN    loss: {:1.3f}, loss_std: {:1.3f}, ' \
               'recall: {:1.2f}, precision: {:1.2f}, f_b: {}'. \
-              format(np.mean(loss_me_list), np.mean(fp_me), np.mean(tp_me),
+              format(np.mean(loss_me_list), np.std(loss_me_list),
                      np.mean(rec_me), np.mean(pre_me), np.mean(f_me)))
 
-        print('SM-RUN    loss: {:1.2f}, price: {:1.2f}, fp_rate: {:1.2f}, tp_rate: {:1.2f}, ' \
+        print('SM-RUN    loss: {:1.3f}, loss_std: {:1.3f}, price: {:1.2f}, ' \
               'recall: {:1.2f}, precision: {:1.2f}, f_b: {}'.\
-            format(np.mean(loss_smrun_list), np.mean(cost_smrun_list), np.mean(fp_sm), np.mean(tp_sm),
+            format(np.mean(loss_smrun_list), np.std(loss_smrun_list), np.mean(cost_smrun_list),
                    np.mean(rec_sm), np.mean(pre_sm), np.mean(f_sm)))
 
-        print('H-RUN    loss: {:1.2f}, price: {:1.2f}, fp_rate: {:1.2f}, tp_rate: {:1.2f}, ' \
+        print('H-RUN    loss: {:1.3f}, loss_std: {:1.3f},  price: {:1.2f}, ' \
               'recall: {:1.2f}, precision: {:1.2f}, f_b: {}'. \
-              format(np.mean(loss_h_list), np.mean(cost_h_list), np.mean(fp_h), np.mean(tp_h),
+              format(np.mean(loss_h_list), np.std(loss_h_list),  np.mean(cost_h_list),
                      np.mean(rec_h), np.mean(pre_h), np.mean(f_h)))
         print('---------------------')
 
