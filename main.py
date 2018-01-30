@@ -10,7 +10,6 @@ from hybrid_classifier import hybrid_classifier
 
 if __name__ == '__main__':
     z = 0.3
-    lr = 5
     n_papers = 1000
     fr_p_part = 0.02
     baseline_items = int(fr_p_part * n_papers)
@@ -19,26 +18,28 @@ if __name__ == '__main__':
     criteria_difficulty = [1., 1., 1.1, 0.9]
     criteria_num = len(criteria_power)
     data = []
+    machine_selec_conf = 0.95
     Nt = 5
     J = 3
-    # tests_num = 50
-    # for tests_num in range(15, 105, 5):
+    tests_num = 50
+    lr = 5
+
+    # for tests_num in [15, 20, 30, 40, 50, 100, 150, 200, 500]:
     # for lr in [1, 5, 10, 20, 50, 100]:
     for tests_num in [50]:
-        print('test_num: {}, baseline_items: {}, lr: {}'.format(tests_num, baseline_items, lr))
-        loss_me_list = []
-        fp_me, tp_me, rec_me, pre_me, f_me, f_me = [], [], [], [], [], []
-
-        loss_smrun_list = []
-        cost_smrun_list = []
-        fp_sm, tp_sm, rec_sm, pre_sm, f_sm, f_sm = [], [], [], [], [], []
-
-        loss_h_list = []
-        cost_h_list = []
-        fp_h, tp_h, rec_h, pre_h, f_h, f_h = [], [], [], [], [], []
         for corr in [0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
-            print('Corr: {}, test_num: {}, lr: {}'.format(corr, tests_num, lr))
-            for _ in range(30):
+            print('Corr: {}, test_num: {}, baseline_items: {}, lr: {}'.format(corr, tests_num, baseline_items, lr))
+            loss_me_list = []
+            fp_me, tp_me, rec_me, pre_me, f_me, f_me = [], [], [], [], [], []
+
+            loss_smrun_list = []
+            cost_smrun_list = []
+            fp_sm, tp_sm, rec_sm, pre_sm, f_sm, f_sm = [], [], [], [], [], []
+
+            loss_h_list = []
+            cost_h_list = []
+            fp_h, tp_h, rec_h, pre_h, f_h, f_h = [], [], [], [], [], []
+            for _ in range(10):
                 # quiz, generation responses
                 acc = run_quiz_criteria_confm(Nt, z, [1.])
                 responses, GT = generate_responses_gt(n_papers, criteria_power, papers_page,
@@ -99,16 +100,16 @@ if __name__ == '__main__':
 
             data.append([Nt, J, lr, np.mean(loss_me_list), np.std(loss_me_list),
                          0., 0., 'Machines-Ensemble', np.mean(rec_me), np.mean(pre_me),
-                         np.mean(f_me), tests_num, corr, baseline_items, n_papers])
+                         np.mean(f_me), tests_num, corr, machine_selec_conf, baseline_items, n_papers])
             data.append([Nt, J, lr, np.mean(loss_h_list), np.std(loss_h_list),
                          np.mean(cost_h_list), np.std(cost_h_list), 'Hybrid-Ensemble',
                          np.mean(rec_h), np.mean(pre_h), np.mean(f_h), tests_num, corr,
-                         baseline_items, n_papers])
+                         machine_selec_conf, baseline_items, n_papers])
             data.append([Nt, J, lr, np.mean(loss_smrun_list), np.std(loss_smrun_list),
                          np.mean(cost_smrun_list), np.std(cost_smrun_list), 'Crowd-Ensemble',
                          np.mean(rec_sm), np.mean(pre_sm), np.mean(f_sm), tests_num, corr,
-                         baseline_items, n_papers])
+                         machine_selec_conf, baseline_items, n_papers])
     pd.DataFrame(data, columns=['Nt', 'J', 'lr', 'loss_mean', 'loss_std',
                                 'price_mean', 'price_std', 'alg', 'recall', 'precision',
-                                'f_beta', 'tests_num', 'corr', 'selection_conf', 'baseline_items',
-                                'total_items']).to_csv('output/data/figXXX.csv', index=False)
+                                'f_beta', 'tests_num', 'corr', 'machine_selec_conf', 'baseline_items',
+                                'total_items']).to_csv('output/data/fig0_base_settings.csv', index=False)
