@@ -108,12 +108,6 @@ def machine_ensemble(filters_num, items_num, gt_values, lr, corr, test_num):
     #                    [(0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8)],  # machines for criteria 1
     #                    [(0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8)],  # machines for criteria 2
     #                    [(0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8), (0.9, 0.8)]]  # machines for criteria 3
-
-    # machines_params = [[(m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc)],  # machines for criteria 0
-    #                    [(m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc)],  # machines for criteria 1
-    #                    [(m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc)],  # machines for criteria 2
-    #                    [(m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc), (m_acc, m_acc)]]  # machines for criteria 3
-    # corr = .2
     machines_accuracy = get_machines(corr, test_num)
 
     votes_list = [[] for _ in range(items_num*filters_num)]
@@ -121,7 +115,7 @@ def machine_ensemble(filters_num, items_num, gt_values, lr, corr, test_num):
     for item_index in range(items_num):
         for filter_index in range(filters_num):
             gt = gt_values[item_index*filters_num + filter_index]  # can be either 0 or 1
-            if np.random.binomial(1, 0.65):
+            if np.random.binomial(1, machines_accuracy[0]):
                 vote = gt
             else:
                 vote = 1 - gt
