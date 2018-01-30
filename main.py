@@ -12,16 +12,20 @@ if __name__ == '__main__':
     z = 0.3
     lr = 5
     n_papers = 1000
+    fr_p_part = 0.02
+    baseline_items = int(fr_p_part * n_papers)
     papers_page = 10
     criteria_power = [0.14, 0.14, 0.28, 0.42]
     criteria_difficulty = [1., 1., 1.1, 0.9]
     criteria_num = len(criteria_power)
-    fr_p_part = 0.02
     data = []
     Nt = 5
     J = 3
+    # tests_num = 50
     # for tests_num in range(15, 105, 5):
+    # for lr in [1, 5, 10, 20, 50, 100]:
     for tests_num in [50]:
+        print('test_num: {}, baseline_items: {}, lr: {}'.format(tests_num, baseline_items, lr))
         loss_me_list = []
         fp_me, tp_me, rec_me, pre_me, f_me, f_me = [], [], [], [], [], []
 
@@ -94,15 +98,17 @@ if __name__ == '__main__':
             print('---------------------')
 
             data.append([Nt, J, lr, np.mean(loss_me_list), np.std(loss_me_list),
-                         np.mean(fp_me), np.mean(tp_me), 0., 0., 'Machines-Ensemble',
-                         np.mean(rec_me), np.mean(pre_me), np.mean(f_me), tests_num, corr])
-            data.append([Nt, J, lr, np.mean(loss_h_list), np.std(loss_h_list), np.mean(fp_h),
-                         np.mean(tp_h), np.mean(cost_h_list), np.std(cost_h_list), 'Hybrid-Ensemble',
-                         np.mean(rec_h), np.mean(pre_h), np.mean(f_h), tests_num, corr])
-            data.append([Nt, J, lr, np.mean(loss_smrun_list), np.std(loss_smrun_list), np.mean(fp_sm),
-                         np.mean(tp_sm), np.mean(cost_smrun_list), np.std(cost_smrun_list), 'Crowd-Ensemble',
-                         np.mean(rec_sm), np.mean(pre_sm), np.mean(f_sm), tests_num, corr])
-    pd.DataFrame(data, columns=['Nt', 'J', 'lr', 'loss_mean', 'loss_std', 'FPR', 'TPR',
+                         0., 0., 'Machines-Ensemble', np.mean(rec_me), np.mean(pre_me),
+                         np.mean(f_me), tests_num, corr, baseline_items, n_papers])
+            data.append([Nt, J, lr, np.mean(loss_h_list), np.std(loss_h_list),
+                         np.mean(cost_h_list), np.std(cost_h_list), 'Hybrid-Ensemble',
+                         np.mean(rec_h), np.mean(pre_h), np.mean(f_h), tests_num, corr,
+                         baseline_items, n_papers])
+            data.append([Nt, J, lr, np.mean(loss_smrun_list), np.std(loss_smrun_list),
+                         np.mean(cost_smrun_list), np.std(cost_smrun_list), 'Crowd-Ensemble',
+                         np.mean(rec_sm), np.mean(pre_sm), np.mean(f_sm), tests_num, corr,
+                         baseline_items, n_papers])
+    pd.DataFrame(data, columns=['Nt', 'J', 'lr', 'loss_mean', 'loss_std',
                                 'price_mean', 'price_std', 'alg', 'recall', 'precision',
-                                'f_beta', 'tests_num', 'corr']). \
-                                to_csv('output/data/fig7_acc05_095_1000items_conf95_difftests.csv', index=False)
+                                'f_beta', 'tests_num', 'corr', 'selection_conf', 'baseline_items',
+                                'total_items']).to_csv('output/data/figXXX.csv', index=False)

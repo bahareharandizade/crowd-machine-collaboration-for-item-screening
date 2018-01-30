@@ -94,8 +94,9 @@ def get_machines(corr, test_num):
             selected_machines_acc.append(acc)
 
     # check number of machines passed the tests
-    if len(selected_machines_acc) < 2:
-        print("!!! machines passed: ", len(selected_machines_acc))
+    # add at least one machine with accuracy in [0.55, 0.9]
+    if len(selected_machines_acc) < 1:
+        selected_machines_acc.append(np.random.uniform(0.55, 0.9))
 
     return selected_machines_acc
 
