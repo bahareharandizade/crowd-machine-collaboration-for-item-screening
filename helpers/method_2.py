@@ -52,7 +52,9 @@ def classify_papers_baseline(papers_ids, criteria_num, values_prob, lr):
     classified_papers = []
     classified_papers_ids = []
     rest_papers_ids = []
-    trsh = lr / (lr + 1.)
+    # trsh = lr / (lr + 1.)
+    # TO DO !!!
+    trsh = 0.99
     for paper_id in papers_ids:
         p_inclusion = 1.
         for e_paper_id in range(criteria_num):
