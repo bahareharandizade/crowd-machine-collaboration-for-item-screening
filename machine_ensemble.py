@@ -54,7 +54,8 @@ def weighted_mv(votes_list, filters_num, items_num, machines_accuracy):
 def classify_items(ensembled_votes, lr, filters_num, items_num):
     prob_in_list = []
     items_labels = []
-    pos_thr = lr / (1. + lr)  # threshold to classify as a positive
+    # pos_thr = lr / (1. + lr)  # threshold to classify as a positive
+    pos_thr = 0.99  # threshold to classify as a positive
     for item_index in range(items_num):
         prob_all_neg = 1.
         for filter_index in range(filters_num):
