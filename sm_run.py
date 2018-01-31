@@ -51,6 +51,8 @@ def sm_run(criteria_num, n_papers, papers_worker, J, lr, Nt, acc,
            criteria_power, criteria_difficulty, GT, fr_p_part):
     # initialization
     p_thrs = 0.99
+    expert_vote_cost = 10
+    expert_vote_counter = 0
     values_count = [[0, 0] for _ in range(n_papers*criteria_num)]
 
     # Baseline round
@@ -71,10 +73,12 @@ def sm_run(criteria_num, n_papers, papers_worker, J, lr, Nt, acc,
     while len(rest_p_ids) != 0:
 
         criteria_count += len(rest_p_ids)
-        cr_assigned, in_papers_ids, rest_p_ids = assign_criteria(rest_p_ids, criteria_num, values_count, power_cr_list, acc_cr_list)
+        cr_assigned, expert_papers, rest_p_ids = assign_criteria(rest_p_ids, criteria_num, values_count,
+                                                                 power_cr_list, acc_cr_list, GT)
 
-        for i in in_papers_ids:
-            classified_papers[i] = 1
+        for i, expert_vote in expert_papers:
+            classified_papers[i] = expert_vote
+            expert_vote_counter += 1
         responses = do_round(GT, rest_p_ids, criteria_num, papers_worker*criteria_num,
                              acc, criteria_difficulty, cr_assigned)
         # update values_count
@@ -90,5 +94,5 @@ def sm_run(criteria_num, n_papers, papers_worker, J, lr, Nt, acc,
         classified_papers.update(classified_p_round)
     classified_papers = [classified_papers[p_id] for p_id in sorted(classified_papers.keys())]
     loss, fp_rate, fn_rate, recall, precision, f_beta = compute_metrics(classified_papers, GT, lr, criteria_num)
-    price_per_paper = criteria_count / n_papers
+    price_per_paper = (criteria_count + expert_vote_counter * expert_vote_cost) / n_papers
     return loss, price_per_paper, fp_rate, fn_rate, recall, precision, f_beta

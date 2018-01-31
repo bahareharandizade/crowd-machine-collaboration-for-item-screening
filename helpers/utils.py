@@ -65,10 +65,17 @@ def compute_metrics(classified_papers, GT, lr, criteria_num):
     tp_rate = tp / (fn + tp)
     fp_rate = fp / (fp + tn)
     recall = tp / (tp + fn)
-    precision = tp / (tp + fp)
+    try:
+        precision = tp / (tp + fp)
+    except:
+        print('precision is none')
+        precision = -1
     loss = (fp * lr + fn) / len(classified_papers)
     beta = 1. / lr
-    f_beta = (beta + 1) * precision * recall / (beta * recall + precision)
+    try:
+        f_beta = (beta + 1) * precision * recall / (beta * recall + precision)
+    except:
+        f_beta = -1
     return loss, fp_rate, tp_rate, recall, precision, f_beta
 
 

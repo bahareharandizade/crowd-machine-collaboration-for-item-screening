@@ -2,11 +2,11 @@ import numpy as np
 from scipy.special import binom
 
 
-def assign_criteria(papers_ids, criteria_num, values_count, power_cr_list, acc_cr_list, prior_prob_in=None):
+def assign_criteria(papers_ids, criteria_num, values_count, power_cr_list, acc_cr_list, GT, prior_prob_in=None):
     cr_assigned = []
     papers_ids_new = []
     cr_list = range(criteria_num)
-    in_papers_ids = []
+    expert_papers = []
     for p_id in papers_ids:
         p_classify = []
         n_min_list = []
@@ -41,11 +41,14 @@ def assign_criteria(papers_ids, criteria_num, values_count, power_cr_list, acc_c
 
         # check stopping condition
         if n_min / joint_prob >= 20:
-            in_papers_ids.append(p_id)
+            if sum([GT[p_id * criteria_num + e_paper_id] for e_paper_id in range(criteria_num)]):
+                expert_papers.append((p_id, 0))
+            else:
+                expert_papers.append((p_id, 1))
         else:
             cr_assigned.append(cr_assign)
             papers_ids_new.append(p_id)
-    return cr_assigned, in_papers_ids, papers_ids_new
+    return cr_assigned, expert_papers, papers_ids_new
 
 
 def classify_papers_baseline(papers_ids, criteria_num, values_prob, lr):
