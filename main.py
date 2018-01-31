@@ -26,9 +26,11 @@ if __name__ == '__main__':
 
     # for tests_num in [15, 20, 30, 40, 50, 100, 150, 200, 500]:
     # for lr in [1, 5, 10, 20, 50, 100]:
-    for tests_num in [50]:
+    # for tests_num in [50]:
+    for machine_selec_conf in [0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.99]:
         for corr in [0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
-            print('Corr: {}, test_num: {}, baseline_items: {}, lr: {}'.format(corr, tests_num, baseline_items, lr))
+            print('Corr: {}, test_num: {}, baseline_items: {}, lr: {}, machine_selec_conf: {}'.
+                  format(corr, tests_num, baseline_items, lr, machine_selec_conf))
             loss_me_list = []
             fp_me, tp_me, rec_me, pre_me, f_me, f_me = [], [], [], [], [], []
 
@@ -48,7 +50,7 @@ if __name__ == '__main__':
                 # machine ensemble
                 loss_me, fp_rate_me, tp_rate_me, \
                 rec_me_, pre_me_, f_beta_me, prior_prob_in = machine_ensemble(criteria_num, n_papers, GT,
-                                                                              lr, corr, tests_num)
+                                                                              lr, corr, tests_num, machine_selec_conf)
                 loss_me_list.append(loss_me)
                 fp_me.append(fp_rate_me)
                 tp_me.append(tp_rate_me)
@@ -112,4 +114,4 @@ if __name__ == '__main__':
     pd.DataFrame(data, columns=['Nt', 'J', 'lr', 'loss_mean', 'loss_std',
                                 'price_mean', 'price_std', 'alg', 'recall', 'precision',
                                 'f_beta', 'tests_num', 'corr', 'machine_selec_conf', 'baseline_items',
-                                'total_items']).to_csv('output/data/fig0_base_settings.csv', index=False)
+                                'total_items']).to_csv('output/data/fig6_machine_selec_conf.csv', index=False)
